@@ -9,13 +9,8 @@
         $msg = "タイトルは30字までで入力してください";
         return $msg;
       }
-      header('Content-type: application/json; charset=utf-8');
-      $data = filter_input(INPUT_GET,select);
-      //$select = json_encode($data);
-      if ($data == true){
-        posted();
-        header("Location:index.php");
-      }
+      header("Location:index.php");
+      
       
     }
   }
@@ -25,9 +20,19 @@
     $sentence = $_POST['sentence'];
     $filename = "article.txt";
     $fp = fopen($filename,"a");
+    fwrite($fp,"<div>".PHP_EOL);
     fwrite($fp,"<h3>".$title."</h3>".PHP_EOL);
     fwrite($fp,"<p>".$sentence."</p>".PHP_EOL);
+    fwrite($fp,"<a href='comment.php''>"."全文を表示する"."</a>".PHP_EOL);
     fwrite($fp,"<hr>".PHP_EOL);
+    fwrite($fp,"</div>".PHP_EOL);
+
+    function count(){
+      $filename = "index.php";
+      $fp = fopen($filename,"r");
+      $count = substr_count($fp,"全文を表示する");
+      return $count;
+    }
   }
 
 ?>
@@ -43,9 +48,11 @@
     <?php 
     if($_SERVER['REQUEST_METHOD'] === 'POST'){
         $error = judge();
-        echo $error;  
+        echo $error;
+       if(empty($error)){
+         posted();
+       }
     }
-    
     ?>
     <form action="index.php" method="post" onsubmit="return dialog()">
       <ul>
@@ -56,22 +63,15 @@
     </form>
     <?php
       include "article.txt";
-      echo $select;
      ?>
   </body>
   <script type="text/javascript" src="node_modules/jquery/dist/jquery.min.js">
-  let select = false;
   function dialog(){
     select = confirm("記事を投稿しますか？");
     console.log(select);
-    
-    $.ajax({
-      type: "POST",
-      url: 'index.php',
-      data: select,
-      dataType: "json",
-      scriptCharset: 'utf-8'
-    })
+    if(select == false){
+      return false;
+    }
   }
   </script>
 </html>
