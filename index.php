@@ -9,30 +9,26 @@
         $msg = "タイトルは30字までで入力してください";
         return $msg;
       }
-      header("Location:index.php");
-      
-      
+      header("Location:index.php");    
     }
   }
 
   function posted() {
+    $filename = "article.csv";
+    $fpr = fopen($filename,"r");
+    $count = 1;
+    while(($data = fgetcsv($fpr)) !== false){
+      $count++;
+    }
+
+    fclose($fpr);
+    $id = $count;
     $title = $_POST['title'];
     $sentence = $_POST['sentence'];
-    $filename = "article.txt";
-    $fp = fopen($filename,"a");
-    fwrite($fp,"<div>".PHP_EOL);
-    fwrite($fp,"<h3>".$title."</h3>".PHP_EOL);
-    fwrite($fp,"<p>".$sentence."</p>".PHP_EOL);
-    fwrite($fp,"<a href='comment.php''>"."全文を表示する"."</a>".PHP_EOL);
-    fwrite($fp,"<hr>".PHP_EOL);
-    fwrite($fp,"</div>".PHP_EOL);
-
-    function count(){
-      $filename = "index.php";
-      $fp = fopen($filename,"r");
-      $count = substr_count($fp,"全文を表示する");
-      return $count;
-    }
+    $article = array($id,$title,$sentence);
+    $fpa = fopen($filename,"a");
+    fputcsv($fpa,$article);
+    fclose($fpa);
   }
 
 ?>
@@ -45,15 +41,15 @@
   <body>
     <h1>Laravel News</h1> 
     <h2>記事投稿</h2>
-    <?php 
-    if($_SERVER['REQUEST_METHOD'] === 'POST'){
+    <?php
+      if($_SERVER['REQUEST_METHOD'] === 'POST'){
         $error = judge();
         echo $error;
        if(empty($error)){
          posted();
        }
-    }
-    ?>
+      }   
+    ?> 
     <form action="index.php" method="post" onsubmit="return dialog()">
       <ul>
       <li>タイトル：<input type="text" name="title"></li>
@@ -61,11 +57,22 @@
       <input type="submit" value="投稿">
       </ul> 
     </form>
-    <?php
-      include "article.txt";
-     ?>
+    <?php 
+        $filename = "article.csv";
+        $fp = fopen($filename,"r");
+        while(($data = fgetcsv($fp)) !== false){ 
+    ?>
+          
+          <h3 class='title'><?php echo $data[1]?></h3>
+          <P class='sentence'><?php echo $data[2] ?></p>
+          <a href="fulltext.php/?id=<?php echo $data[0] ?>">記事全体を表示</a>
+          <hr>
+          
+          <?php
+        }?>
+    
   </body>
-  <script type="text/javascript" src="node_modules/jquery/dist/jquery.min.js">
+  <script type="text/javascript">
   function dialog(){
     select = confirm("記事を投稿しますか？");
     console.log(select);
