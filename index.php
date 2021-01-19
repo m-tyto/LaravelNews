@@ -65,7 +65,7 @@
           
           <h3 class='title'><?php echo $data[1]?></h3>
           <P class='sentence'><?php echo $data[2] ?></p>
-          <a href="fulltext.php/?id=<?php echo $data[0] ?>">記事全体を表示</a>
+          <a href="fulltext.php?id=<?php echo $data[0] ?>">記事全体を表示</a>
           <hr>
           
           <?php

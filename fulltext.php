@@ -3,6 +3,8 @@
     $a_id = $_GET['id'];
   }
 
+  $url = "fulltext.php/?id=".$a_id;
+
   function add_comment($a_id){
     $filename = "comment.csv";
     $fpr = fopen($filename,"r");
@@ -26,8 +28,7 @@
       $msg = "コメントを入力してください";
       return $msg;
     }
-    header("Location:fulltext.php/?id=".$a_id);
-
+    header("Location:$url");
   }
   
   function get_article($id){
@@ -57,17 +58,19 @@
       <h4>コメント</h4>
       <?php 
         if($_SERVER['REQUEST_METHOD'] === 'POST'){
-          $error = judge();
-          echo $error;
-         if(empty($error)){
-           add_comment();
-         }
-        }
+          if(isset($_POST['name'])){
+            $error = judge();
+            echo $error;
+            if(empty($error)){
+              add_comment($a_id);
+            }
+          }
+        }        
       ?>
       <div class="input_comment">
-        <form action="fulltext.php/?id=<?php echo $a_id ?> " method='post' onsubmit="return add_confirm()">
+        <form action="" method='post' onsubmit="return add_confirm()">
           <ul>
-            <li>名前<input type="text" name='name'></li>
+            <li>名前<input type="text" name='name' value="匿名"></li>
             <li>コメント<input type="text" name='comment'></li>
           </ul>
           <input type="submit" value='コメントする'>
@@ -77,11 +80,13 @@
         $filename = "comment.csv";
         $fp = fopen($filename,"r");
         while(($comment = fgetcsv($fp)) !== false){
-          if($comment[1] === $a_id){
+          if($comment[1] == $a_id){
         ?>
         <div class="comment">
           <p><?php echo $comment[2] ?></p>
           <p><?php echo $comment[3] ?></p>
+          <a href="">コメントを削除する</a>
+          <hr>
         <div>
       <?php
           }
