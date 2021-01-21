@@ -86,7 +86,7 @@
         <dt>本文</dt>
         <dd><textarea name="sentence" cols="50" rows="10"></textarea></dd>
         <div class="button"><input type="submit" value="投稿"> </div>
-      </ul> 
+      </dl> 
     </form>
     <hr>
     <?php
