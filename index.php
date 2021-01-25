@@ -2,10 +2,32 @@
   $filename = "article.csv";
   $max = 10;
 
+  $user = 'root';
+  $password = 'root';
+  $db = 'laravel_news';
+  $host = 'localhost';
+  $port = 3306;
+
+
+  $link = mysqli_init();
+
+  $success = mysqli_real_connect(
+    $link,
+    $host,
+    $user,
+    $password,
+    $db,
+    $port
+  );
+
+  $insert_into = 'INSERT INTO "articles"("title","sentence") VALUES ("aaa","bbb")';
+  $insert = mysqli_query($link,$insert_into);
+  var_dump($insert);
+  
   function judge(){
     if($_SERVER['REQUEST_METHOD'] === 'POST'){
       if(empty($_POST['title']) || empty($_POST['sentence'])){
-        $msg = "タイトル,本文のは必須入力です";
+        $msg = "タイトル,本文は必須入力です";
         return $msg;
       }
       if(strlen($_POST['title']) > 30){
@@ -33,7 +55,7 @@
     fclose($fpa);
   }
 
-  function paging($filename, $max){
+  function paging($filename,$max){
     $fp = fopen($filename,"r");
     $count = 1;
     $file_array = array();
@@ -42,23 +64,29 @@
     }
     fclose($fp);
     $file_array = array_reverse($file_array);
-    $now = 1;
+    $page_num = 1;
     if($_GET['page_num']){
-      $now = $_GET['page_num'];
+      $page_num = $_GET['page_num'];
     }
-    $start_num = ($now - 1) * $max;
+    $start_num = ($page_num - 1) * $max;
     $page_array = array_slice($file_array, $start_num, $max);
     return $page_array;
   }
 
   function get_page(){
-    $now = 1;
+    $page_num = 1;
     if($_GET['page_num']){
-      $now = $_GET['page_num'];
+      $page_num = $_GET['page_num'];
     }
-    return $now;
+    return $page_num;
   }
 
+  function show_table(){
+    $select_from = 'SELECT * FROM articles;';
+    $result = mysqli_query($link,$select_from);
+    $rows = mysqli_fetch_assoc($result);
+    return $rows;
+  }  
 ?>
 
 <!DOCTYPE html>
@@ -110,7 +138,7 @@
       <?php
         $line = count(file($filename));
         $max_page = ceil($line / $max);
-        $now = get_page();
+        $page_num = get_page();
         for($i = 1; $i <= $max_page; $i++){
       ?>
         <div class="page"><a href="index.php?page_num=<?php echo $i ?>"><?php echo $i ?></a></div>

@@ -3,7 +3,7 @@
     $id = $_GET['id'];
   }
 
-  $url = "fulltext.php/?id=".$id;
+  $url = "fulltext.php?id=".$id;
 
   function add_comment($id){
     $filename = "comment.csv";
@@ -28,7 +28,7 @@
       $msg = "コメントを入力してください";
       return $msg;
     }
-    header("Location:$url");
+    header("Location:".$url);
   }
   
   function get_article($id){
@@ -84,11 +84,13 @@
           echo $error;
           if(empty($error)){
             add_comment($id);
+            header("Location:".$url);
           }
         }
       }
       if(isset($_POST['c_id'])){
         delete_comment();
+        header("Location:".$url);
       }
       ?>
       <div class="comment_form">
