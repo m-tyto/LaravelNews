@@ -111,7 +111,7 @@
 
     <div class="page">
       <?php
-        $line = count($pages);
+        $line = count($rows);
         $max_page = ceil($line / $max);
         $page_num = get_page();
         for($i = 1; $i <= $max_page; $i++){
