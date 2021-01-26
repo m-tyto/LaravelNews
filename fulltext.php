@@ -1,26 +1,17 @@
 <?php
+  include "connect_db.php";
+
   if(isset($_GET['id'])){
-    $id = $_GET['id'];
+    $article_id = $_GET['id'];
   }
 
   $url = "fulltext.php/?id=".$id;
 
-  function add_comment($id){
-    $filename = "comment.csv";
-    $fpr = fopen($filename,"r");
-    $count = 1;
-    while(($data = fgetcsv($fpr)) !== false){
-      $count++;
-    }
-    fclose($fpr);
-
-    $c_id = $count;
+  function add_comment($link,$id){
     $name = $_POST['name'];
     $comment_text = $_POST['comment'];
-    $comment = array($c_id,$id, $name,$comment_text);
-    $fpa = fopen($filename,"a");
-    fputcsv($fpa,$comment);
-    fclose($fpa);
+    $sql = 'INSERT INTO comments(article_id,name,comment) VALUES ("'.$id.'","'.$name.'","'.$comment_text.'");';
+    $result = mysqli_query($link,$sql);
   }
 
   function judge(){
@@ -31,33 +22,29 @@
     header("Location:$url");
   }
   
-  function get_article($id){
-    $filename = "article.csv";
-    $fp = fopen($filename,"r");
-    while(($data = fgetcsv($fp)) !== false){
-      if($data[0] === $id){
-        return $data;
-        break;
-      }
-    }
+  function get_article($link,$id){
+    $sql = 'SELECT * FROM articles WHERE (id = '.$id.');';
+    $result = mysqli_query($link,$sql);
+    $article = mysqli_fetch_assoc($result);
+    return $article;
   }
 
-  function delete_comment(){
-    $filename = "comment.csv";
-    $c_id = $_POST['c_id'];
-    $fp = fopen($filename,"r");
-    $line = 0;
-    while(($data = fgetcsv($fp)) !== false){
-      if($c_id == $data[0]){
-        fclose($fp);
-        break;
-      }
-      $line++;
-    }
-    $file_array = file($filename);
-    unset($file_array[$line]);
-    file_put_contents($filename, $file_array);
+  function delete_comment($link){
+    $comment_id = $_POST['comment_id'];
+    $sql = 'DELETE FROM comments where (id = '.$comment_id.');';
+    $result = mysqli_query($link,$sql);
   }
+
+  function get_comment($link,$id){
+    $sql = 'SELECT * FROM comments where(article_id = '.$id.') ORDER BY id DESC;';
+    $result = mysqli_query($link,$sql);
+    $rows = array();
+    while($rows[] = mysqli_fetch_assoc($result)){
+
+    }
+    return $rows;
+  }  
+
 ?>
 <!DOCTYPE html>
 <html>
@@ -68,12 +55,12 @@
   <body>
   <h1>Laravel News</h1> 
     <?php
-      $article = get_article($id);
+      $article = get_article($link,$article_id);
     ?>
 
     <div id="article">
-      <h2 id="title"> <?php echo $article[1]; ?> </h2>
-      <p id="sentence"> <?php echo $article[2]; ?> </p>
+      <h2 id="title"> <?php echo $article["title"]; ?> </h2>
+      <p id="sentence"> <?php echo $article["sentence"]; ?> </p>
     </div>
     <hr>
     <h4>コメント</h4>
@@ -83,12 +70,12 @@
           $error = judge();
           echo $error;
           if(empty($error)){
-            add_comment($id);
+            add_comment($link,$article_id);
           }
         }
       }
-      if(isset($_POST['c_id'])){
-        delete_comment();
+      if(isset($_POST['comment_id'])){
+        delete_comment($link);
       }
       ?>
       <div class="comment_form">
@@ -103,17 +90,17 @@
         </form>
       </div>
       <?php 
-        $filename = "comment.csv";
-        $fp = fopen($filename,"r");
-        while(($comment = fgetcsv($fp)) !== false){
-          if($comment[1] == $id){
+        $comments = get_comment($link,$article_id);
+        foreach($comments as $comment){
+          if(!empty($comment)){
+        
       ?>
       <div class="comment">
-        <p><?php echo $comment[2] ?></p>
-        <p><?php echo $comment[3] ?></p>
+        <p><?php echo $comment["name"] ?></p>
+        <p><?php echo $comment["comment"] ?></p>
 
         <form action="" method="post" onsubmit="return delete_confirm()">
-          <input type="hidden" name="c_id" value="<?php echo $comment[0] ?>">
+          <input type="hidden" name="comment_id" value="<?php echo $comment["id"] ?>">
           <div class="delete_button"><input type="submit" value="削除"></div>
         </form>
       </div>
@@ -121,7 +108,7 @@
 
       <?php
           }
-        }
+        } 
       ?>
 
   </body>

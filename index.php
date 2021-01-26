@@ -2,10 +2,20 @@
   $filename = "article.csv";
   $max = 10;
 
+  include "connect_db.php";
+
+  /*$insert_into = 'INSERT INTO articles(title,sentence) VALUES ("aaa","bbb");';
+  $insert = mysqli_query($link,$insert_into);
+  var_dump($insert);*/
+
+  //SQLうまくいかないときに使えば良い
+  /*$error = mysqli_error($link);
+  var_dump($error);*/
+  
   function judge(){
     if($_SERVER['REQUEST_METHOD'] === 'POST'){
       if(empty($_POST['title']) || empty($_POST['sentence'])){
-        $msg = "タイトル,本文のは必須入力です";
+        $msg = "タイトル,本文は必須入力です";
         return $msg;
       }
       if(strlen($_POST['title']) > 30){
@@ -16,49 +26,41 @@
     }
   }
 
-  function add_article($filename) {
-    $fpr = fopen($filename, "r");
-    $count = 1;
-    while(($data = fgetcsv($fpr)) !== false){
-      $count++;
-    }
-
-    fclose($fpr);
-    $id = $count;
+  function add_article($link) {
     $title = $_POST['title'];
     $sentence = $_POST['sentence'];
-    $article = array($id, $title, $sentence);
-    $fpa = fopen($filename, "a");
-    fputcsv($fpa, $article);
-    fclose($fpa);
+    $sql = 'INSERT INTO articles(title,sentence) VALUES ("'.$title.'","'.$sentence.'");';
+    $result = mysqli_query($link,$sql);
+    return $result;
   }
 
-  function paging($filename, $max){
-    $fp = fopen($filename,"r");
-    $count = 1;
-    $file_array = array();
-    while(($file_array[] = fgetcsv($fp)) !== false){
-      $count++;
-    }
-    fclose($fp);
-    $file_array = array_reverse($file_array);
-    $now = 1;
+  function paging($array,$max){
+    $page_num = 1;
     if($_GET['page_num']){
-      $now = $_GET['page_num'];
+      $page_num = $_GET['page_num'];
     }
-    $start_num = ($now - 1) * $max;
-    $page_array = array_slice($file_array, $start_num, $max);
+    $start_num = ($page_num - 1) * $max;
+    $page_array = array_slice($array, $start_num, $max);
     return $page_array;
   }
 
   function get_page(){
-    $now = 1;
+    $page_num = 1;
     if($_GET['page_num']){
-      $now = $_GET['page_num'];
+      $page_num = $_GET['page_num'];
     }
-    return $now;
+    return $page_num;
   }
 
+  function show_table($link){
+    $sql = 'SELECT * FROM articles ORDER BY id DESC;';
+    $result = mysqli_query($link,$sql);
+    $rows = array();
+    while($rows[] = mysqli_fetch_assoc($result)){
+
+    }
+    return $rows;
+  }  
 ?>
 
 <!DOCTYPE html>
@@ -75,7 +77,8 @@
         $error = judge();
         echo $error;
        if(empty($error)){
-         add_article($filename);
+         $test = add_article($link);
+         var_dump($test);
        }
       }   
     ?> 
@@ -90,27 +93,27 @@
     </form>
     <hr>
     <?php
-      $page = paging($filename,$max);
-      $page_count = count($page);
-      $i = 0;
-      while($i < $page_count){
-        if(!empty($page[$i])){
+      $rows = show_table($link);
+      $pages = paging($rows,$max);
+      $page_count = count($pages);
+      foreach($pages as $page){
+        if(!empty($page)){
     ?>  
-        <h3 class='title'><?php echo $page[$i][1] ?></h3>
-        <P class='sentence'><?php echo $page[$i][2] ?></p>
-        <div class="fulltext"><a href="fulltext.php?id=<?php echo $page[$i][0] ?>">記事全体を表示</a></div>
+        <h3 class='title'><?php echo $page["title"] ?></h3>
+        <P class='sentence'><?php echo $page["sentence"] ?></p>
+        <div class="fulltext"><a href="fulltext.php?id=<?php echo $page["id"] ?>">記事全体を表示</a></div>
         <hr>
     <?php
         }
-        $i++;
+        
       } ?>  
 
 
     <div class="page">
       <?php
-        $line = count(file($filename));
+        $line = count($pages);
         $max_page = ceil($line / $max);
-        $now = get_page();
+        $page_num = get_page();
         for($i = 1; $i <= $max_page; $i++){
       ?>
         <div class="page"><a href="index.php?page_num=<?php echo $i ?>"><?php echo $i ?></a></div>
