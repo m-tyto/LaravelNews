@@ -13,25 +13,23 @@
   var_dump($error);*/
   
   function judge(){
-    if($_SERVER['REQUEST_METHOD'] === 'POST'){
-      if(empty($_POST['title']) || empty($_POST['sentence'])){
-        $msg = "タイトル,本文は必須入力です";
-        return $msg;
-      }
-      if(strlen($_POST['title']) > 30){
-        $msg = "タイトルは30字までで入力してください";
-        return $msg;
-      }
-      header("Location:index.php");    
+    if(empty($_POST['title']) || empty($_POST['sentence'])){
+      $msg = "タイトル,本文は必須入力です";
+      return $msg;
     }
+    if(strlen($_POST['title']) > 30){
+      $msg = "タイトルは30字までで入力してください";
+      return $msg;
+    }
+    header("Location:index.php");    
+    
   }
 
   function add_article($link) {
     $title = $_POST['title'];
     $sentence = $_POST['sentence'];
     $sql = 'INSERT INTO articles(title,sentence) VALUES ("'.$title.'","'.$sentence.'");';
-    $result = mysqli_query($link,$sql);
-    return $result;
+    mysqli_query($link,$sql);
   }
 
   function paging($array,$max){
@@ -75,11 +73,10 @@
     <?php
       if($_SERVER['REQUEST_METHOD'] === 'POST'){
         $error = judge();
-        echo $error;
-       if(empty($error)){
-         $test = add_article($link);
-         var_dump($test);
-       }
+        echo judge();
+        if(empty($error)){
+          add_article($link);
+        }
       }   
     ?> 
     <form action="index.php" method="post" onsubmit="return dialog()">
